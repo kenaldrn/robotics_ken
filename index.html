@@ -1,1 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Robotics Project</title>
 
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    display: flex;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 250px;
+    background-color: #c4161c;
+    color: white;
+    padding: 30px 20px;
+    height: 100vh;
+}
+
+.sidebar h2 {
+    margin-bottom: 40px;
+}
+
+.sidebar a {
+    display: block;
+    color: white;
+    text-decoration: none;
+    margin: 15px 0;
+    font-size: 18px;
+}
+
+.sidebar a:hover {
+    text-decoration: underline;
+}
+
+/* Main Content */
+.content {
+    flex: 1;
+    padding: 50px;
+    background-color: #f5f5f5;
+}
+
+.section {
+    margin-bottom: 80px;
+}
+
+.section h1 {
+    font-size: 40px;
+    margin-bottom: 10px;
+}
+
+.red-line {
+    width: 50px;
+    height: 5px;
+    background-color: #c4161c;
+    margin-bottom: 30px;
+}
+
+.card {
+    background-color: white;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+</style>
+</head>
+
+<body>
+
+<div class="sidebar">
+    <h2>ROBOTICA<br>PROJECT</h2>
+
+    <a href="#">Home</a>
+    <a href="#">Overview</a>
+    <a href="#">Photos</a>
+    <a href="#">Hardware</a>
+    <a href="#">Software</a>
+    <a href="#">Timeline</a>
+</div>
+
+<div class="content">
+
+    <div class="section">
+        <h1>Overview.</h1>
+        <div class="red-line"></div>
+
+        <div class="card">
+            <h3>Reaction Speed Tester for Left and Right Hand</h3>
+            <p>
+                This project allows you to test the reaction speed of your left and right hand
+                using Arduino, a display, and two buttons.
+                The program records the time it takes to press each button,
+                compares the times, and displays the result in milliseconds.
+            </p>
+        </div>
+    </div>
+
+    <div class="section">
+        <h1>Photos.</h1>
+        <div class="red-line"></div>
+
+        <div class="card">
+            <p>Project photos will go here.</p>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>
