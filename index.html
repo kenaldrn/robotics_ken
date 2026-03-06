@@ -10,58 +10,66 @@
 
 <link rel="stylesheet" href="style.css">
 
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
 
 </head>
 
 <body>
 
-<div class="sidebar">
+<div id="particles"></div>
 
-<h2>SMART LOCK</h2>
+<header>
 
-<a href="#home">Home</a>
-<a href="#overview">Overview</a>
+<h1>🔐 Smart Door Lock</h1>
+
+<nav>
+<a href="#about">Overview</a>
 <a href="#hardware">Hardware</a>
-<a href="#software">Software</a>
-<a href="#photos">Photos</a>
-<a href="#timeline">Timeline</a>
+<a href="#gallery">Gallery</a>
+<a href="#progress">Development</a>
 <a href="#demo">Demo</a>
+</nav>
 
 <button id="modeToggle">🌙</button>
 
-</div>
+</header>
 
 
 
-<div class="content">
+<section class="hero">
 
-<section id="home">
+<h2>Password Keypad Security System</h2>
 
-<h1>Password Keypad Door Lock</h1>
+<p>Embedded system that unlocks a door using a keypad password.</p>
 
-<p>
-A smart security system that unlocks a door using a keypad password and Arduino controller.
-</p>
+<a class="button" href="#about">Explore Project</a>
 
 </section>
 
 
 
-<section id="overview">
+<section id="about">
 
-<h2>Overview</h2>
+<h2>Project Features</h2>
 
-<p>
-The Smart Keypad Door Lock is an embedded system project designed to improve home security.
-Users must enter a correct password using a keypad to unlock the door. 
-If the password is correct, the servo motor rotates and unlocks the door.
-</p>
+<div class="cards">
 
-<p>
-If the password is incorrect, the system denies access and displays a warning.
-After several incorrect attempts, the system can trigger an alarm.
-</p>
+<div class="card">
+<h3>🔐 Secure Access</h3>
+<p>Door unlocks only when the correct password is entered.</p>
+</div>
+
+<div class="card">
+<h3>⚙️ Automation</h3>
+<p>A servo motor controls the locking mechanism.</p>
+</div>
+
+<div class="card">
+<h3>🚨 Protection</h3>
+<p>Wrong attempts trigger warning indicators.</p>
+</div>
+
+</div>
 
 </section>
 
@@ -71,57 +79,30 @@ After several incorrect attempts, the system can trigger an alarm.
 
 <h2>Hardware Components</h2>
 
-<ul>
+<div class="hardware">
 
-<li>Arduino Uno</li>
-<li>4x4 Matrix Keypad</li>
-<li>Servo Motor</li>
-<li>16x2 LCD Display</li>
-<li>LED Indicators</li>
-<li>Breadboard</li>
-<li>Jumper Wires</li>
+<div class="hardware-card">Arduino Uno</div>
+<div class="hardware-card">4x4 Matrix Keypad</div>
+<div class="hardware-card">Servo Motor</div>
+<div class="hardware-card">LCD Display</div>
+<div class="hardware-card">LED Indicators</div>
+<div class="hardware-card">Breadboard</div>
 
-</ul>
-
-</section>
-
-
-
-<section id="software">
-
-<h2>Software Logic</h2>
-
-<p>
-The Arduino program reads keypad input and compares it with the stored password.
-If the password matches, the servo motor rotates to unlock the door.
-</p>
-
-<pre>
-
-if(password == enteredPassword){
-servo.write(90);
-lcd.print("Access Granted");
-}
-
-else{
-lcd.print("Access Denied");
-}
-
-</pre>
+</div>
 
 </section>
 
 
 
-<section id="photos">
+<section id="gallery">
 
-<h2>Project Photos</h2>
+<h2>Project Gallery</h2>
 
 <div class="gallery">
 
-<img src="images/setup.jpg">
-<img src="images/keypad.jpg">
-<img src="images/prototype.jpg">
+<img src="images/setup.jpg" onclick="openLightbox(this.src)">
+<img src="images/keypad.jpg" onclick="openLightbox(this.src)">
+<img src="images/lock.jpg" onclick="openLightbox(this.src)">
 
 </div>
 
@@ -129,30 +110,30 @@ lcd.print("Access Denied");
 
 
 
-<section id="timeline">
+<section id="progress">
 
-<h2>Project Timeline</h2>
+<h2>Development Progress</h2>
 
-<div class="timeline">
+<div class="progress-container">
 
-<div class="step">
-<h3>Week 1</h3>
-<p>Project research and planning</p>
+<div class="progress">
+<p>Research</p>
+<div class="bar"><span style="width:100%"></span></div>
 </div>
 
-<div class="step">
-<h3>Week 2</h3>
-<p>Hardware assembly</p>
+<div class="progress">
+<p>Hardware Assembly</p>
+<div class="bar"><span style="width:85%"></span></div>
 </div>
 
-<div class="step">
-<h3>Week 3</h3>
-<p>Arduino programming</p>
+<div class="progress">
+<p>Programming</p>
+<div class="bar"><span style="width:70%"></span></div>
 </div>
 
-<div class="step">
-<h3>Week 4</h3>
-<p>Testing and debugging</p>
+<div class="progress">
+<p>Testing</p>
+<div class="bar"><span style="width:50%"></span></div>
 </div>
 
 </div>
@@ -177,10 +158,14 @@ allowfullscreen>
 
 <footer>
 
-<p>Embedded Systems Project • Smart Door Lock • 2025</p>
+<p>Embedded Systems Project • Smart Door Lock</p>
 
 </footer>
 
+
+
+<div id="lightbox" onclick="closeLightbox()">
+<img id="lightbox-img">
 </div>
 
 <script src="script.js"></script>
