@@ -1,113 +1,189 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Robotics Project</title>
 
-<style>
-body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    display: flex;
-}
+<title>Smart Keypad Door Lock</title>
 
-/* Sidebar */
-.sidebar {
-    width: 250px;
-    background-color: #c4161c;
-    color: white;
-    padding: 30px 20px;
-    height: 100vh;
-}
+<link rel="stylesheet" href="style.css">
 
-.sidebar h2 {
-    margin-bottom: 40px;
-}
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 
-.sidebar a {
-    display: block;
-    color: white;
-    text-decoration: none;
-    margin: 15px 0;
-    font-size: 18px;
-}
-
-.sidebar a:hover {
-    text-decoration: underline;
-}
-
-/* Main Content */
-.content {
-    flex: 1;
-    padding: 50px;
-    background-color: #f5f5f5;
-}
-
-.section {
-    margin-bottom: 80px;
-}
-
-.section h1 {
-    font-size: 40px;
-    margin-bottom: 10px;
-}
-
-.red-line {
-    width: 50px;
-    height: 5px;
-    background-color: #c4161c;
-    margin-bottom: 30px;
-}
-
-.card {
-    background-color: white;
-    padding: 20px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
-}
-</style>
 </head>
 
 <body>
 
 <div class="sidebar">
-    <h2>ROBOTICA<br>PROJECT</h2>
 
-    <a href="#">Home</a>
-    <a href="#">Overview</a>
-    <a href="#">Photos</a>
-    <a href="#">Hardware</a>
-    <a href="#">Software</a>
-    <a href="#">Timeline</a>
+<h2>SMART LOCK</h2>
+
+<a href="#home">Home</a>
+<a href="#overview">Overview</a>
+<a href="#hardware">Hardware</a>
+<a href="#software">Software</a>
+<a href="#photos">Photos</a>
+<a href="#timeline">Timeline</a>
+<a href="#demo">Demo</a>
+
+<button id="modeToggle">🌙</button>
+
 </div>
+
+
 
 <div class="content">
 
-    <div class="section">
-        <h1>Overview.</h1>
-        <div class="red-line"></div>
+<section id="home">
 
-        <div class="card">
-            <h3>Reaction Speed Tester for Left and Right Hand</h3>
-            <p>
-                This project allows you to test the reaction speed of your left and right hand
-                using Arduino, a display, and two buttons.
-                The program records the time it takes to press each button,
-                compares the times, and displays the result in milliseconds.
-            </p>
-        </div>
-    </div>
+<h1>Password Keypad Door Lock</h1>
 
-    <div class="section">
-        <h1>Photos.</h1>
-        <div class="red-line"></div>
+<p>
+A smart security system that unlocks a door using a keypad password and Arduino controller.
+</p>
 
-        <div class="card">
-            <p>Project photos will go here.</p>
-        </div>
-    </div>
+</section>
+
+
+
+<section id="overview">
+
+<h2>Overview</h2>
+
+<p>
+The Smart Keypad Door Lock is an embedded system project designed to improve home security.
+Users must enter a correct password using a keypad to unlock the door. 
+If the password is correct, the servo motor rotates and unlocks the door.
+</p>
+
+<p>
+If the password is incorrect, the system denies access and displays a warning.
+After several incorrect attempts, the system can trigger an alarm.
+</p>
+
+</section>
+
+
+
+<section id="hardware">
+
+<h2>Hardware Components</h2>
+
+<ul>
+
+<li>Arduino Uno</li>
+<li>4x4 Matrix Keypad</li>
+<li>Servo Motor</li>
+<li>16x2 LCD Display</li>
+<li>LED Indicators</li>
+<li>Breadboard</li>
+<li>Jumper Wires</li>
+
+</ul>
+
+</section>
+
+
+
+<section id="software">
+
+<h2>Software Logic</h2>
+
+<p>
+The Arduino program reads keypad input and compares it with the stored password.
+If the password matches, the servo motor rotates to unlock the door.
+</p>
+
+<pre>
+
+if(password == enteredPassword){
+servo.write(90);
+lcd.print("Access Granted");
+}
+
+else{
+lcd.print("Access Denied");
+}
+
+</pre>
+
+</section>
+
+
+
+<section id="photos">
+
+<h2>Project Photos</h2>
+
+<div class="gallery">
+
+<img src="images/setup.jpg">
+<img src="images/keypad.jpg">
+<img src="images/prototype.jpg">
 
 </div>
+
+</section>
+
+
+
+<section id="timeline">
+
+<h2>Project Timeline</h2>
+
+<div class="timeline">
+
+<div class="step">
+<h3>Week 1</h3>
+<p>Project research and planning</p>
+</div>
+
+<div class="step">
+<h3>Week 2</h3>
+<p>Hardware assembly</p>
+</div>
+
+<div class="step">
+<h3>Week 3</h3>
+<p>Arduino programming</p>
+</div>
+
+<div class="step">
+<h3>Week 4</h3>
+<p>Testing and debugging</p>
+</div>
+
+</div>
+
+</section>
+
+
+
+<section id="demo">
+
+<h2>Project Demo</h2>
+
+<iframe width="560" height="315"
+src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+frameborder="0"
+allowfullscreen>
+</iframe>
+
+</section>
+
+
+
+<footer>
+
+<p>Embedded Systems Project • Smart Door Lock • 2025</p>
+
+</footer>
+
+</div>
+
+<script src="script.js"></script>
 
 </body>
 </html>
