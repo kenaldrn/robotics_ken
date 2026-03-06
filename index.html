@@ -1,174 +1,128 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Smart Keypad Door Lock</title>
-
-<link rel="stylesheet" href="style.css">
-
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartLock Pro | Future of Security</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;700&display=swap" rel="stylesheet">
 </head>
-
-<body>
-
-<div id="particles"></div>
-
-<header>
-
-<h1>🔐 Smart Door Lock</h1>
-
-<nav>
-<a href="#about">Overview</a>
-<a href="#hardware">Hardware</a>
-<a href="#gallery">Gallery</a>
-<a href="#progress">Development</a>
-<a href="#demo">Demo</a>
-</nav>
-
-<button id="modeToggle">🌙</button>
-
-</header>
-
-
-
-<section class="hero">
-
-<h2>Password Keypad Security System</h2>
-
-<p>Embedded system that unlocks a door using a keypad password.</p>
-
-<a class="button" href="#about">Explore Project</a>
-
-</section>
-
-
-
-<section id="about">
-
-<h2>Project Features</h2>
-
-<div class="cards">
-
-<div class="card">
-<h3>🔐 Secure Access</h3>
-<p>Door unlocks only when the correct password is entered.</p>
-</div>
-
-<div class="card">
-<h3>⚙️ Automation</h3>
-<p>A servo motor controls the locking mechanism.</p>
-</div>
-
-<div class="card">
-<h3>🚨 Protection</h3>
-<p>Wrong attempts trigger warning indicators.</p>
-</div>
-
-</div>
-
-</section>
-
-
-
-<section id="hardware">
-
-<h2>Hardware Components</h2>
-
-<div class="hardware">
-
-<div class="hardware-card">Arduino Uno</div>
-<div class="hardware-card">4x4 Matrix Keypad</div>
-<div class="hardware-card">Servo Motor</div>
-<div class="hardware-card">LCD Display</div>
-<div class="hardware-card">LED Indicators</div>
-<div class="hardware-card">Breadboard</div>
-
-</div>
-
-</section>
-
-
-
-<section id="gallery">
-
-<h2>Project Gallery</h2>
-
-<div class="gallery">
-
-<img src="images/setup.jpg" onclick="openLightbox(this.src)">
-<img src="images/keypad.jpg" onclick="openLightbox(this.src)">
-<img src="images/lock.jpg" onclick="openLightbox(this.src)">
-
-</div>
-
-</section>
-
-
-
-<section id="progress">
-
-<h2>Development Progress</h2>
-
-<div class="progress-container">
-
-<div class="progress">
-<p>Research</p>
-<div class="bar"><span style="width:100%"></span></div>
-</div>
-
-<div class="progress">
-<p>Hardware Assembly</p>
-<div class="bar"><span style="width:85%"></span></div>
-</div>
-
-<div class="progress">
-<p>Programming</p>
-<div class="bar"><span style="width:70%"></span></div>
-</div>
-
-<div class="progress">
-<p>Testing</p>
-<div class="bar"><span style="width:50%"></span></div>
-</div>
-
-</div>
-
-</section>
-
-
-
-<section id="demo">
-
-<h2>Project Demo</h2>
-
-<iframe width="560" height="315"
-src="https://www.youtube.com/embed/dQw4w9WgXcQ"
-frameborder="0"
-allowfullscreen>
-</iframe>
-
-</section>
-
-
-
-<footer>
-
-<p>Embedded Systems Project • Smart Door Lock</p>
-
-</footer>
-
-
-
-<div id="lightbox" onclick="closeLightbox()">
-<img id="lightbox-img">
-</div>
-
-<script src="script.js"></script>
-
+<body class="dark-mode">
+    <div class="cursor-glow"></div>
+    <div class="mesh-gradient"></div>
+
+    <nav class="glass-nav">
+        <div class="logo">CORE<span>LOCK</span></div>
+        <div class="nav-links">
+            <a href="#hero">Home</a>
+            <a href="#features">Features</a>
+            <a href="#hardware">Hardware</a>
+            <a href="#stats">Progress</a>
+        </div>
+        <button id="theme-toggle">🌓</button>
+    </nav>
+
+    <section id="hero" class="hero">
+        <div class="hero-tag">V1.0 Live Project</div>
+        <h1 class="reveal">Smart Keypad <br><span class="gradient-text">Door Lock System</span></h1>
+        <p class="hero-subtext">Next-gen hardware security powered by Arduino logic. Encrypted access, automated mechanics, and sleek visual feedback.</p>
+        <div class="hero-btns">
+            <a href="#features" class="btn-primary">Explore Tech</a>
+            <a href="#demo" class="btn-secondary">Watch Demo</a>
+        </div>
+        <div class="hero-visual">
+            <div class="floating-card">
+                <div class="pulse-ring"></div>
+                <img src="https://cdn-icons-png.flaticon.com/512/2504/2504814.png" alt="Lock Icon">
+            </div>
+        </div>
+    </section>
+
+    <section id="features" class="section">
+        <div class="section-header">
+            <span class="subtitle">Capabilities</span>
+            <h2>Advanced Security</h2>
+        </div>
+        <div class="bento-grid">
+            <div class="bento-item glass-card tall">
+                <div class="icon">🔒</div>
+                <h3>Dynamic Encryption</h3>
+                <p>Password processing with real-time verification and zero-latency response.</p>
+            </div>
+            <div class="bento-item glass-card wide">
+                <div class="icon">⚡</div>
+                <h3>Servo Automation</h3>
+                <p>High-torque motor control for physical bolt actuation.</p>
+            </div>
+            <div class="bento-item glass-card">
+                <div class="icon">🚨</div>
+                <h3>Anti-Tamper</h3>
+                <p>Instant lockout after 3 failed attempts.</p>
+            </div>
+            <div class="bento-item glass-card">
+                <div class="icon">📱</div>
+                <h3>LCD Interface</h3>
+                <p>User-friendly visual feedback system.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="hardware" class="section">
+        <div class="section-header">
+            <span class="subtitle">Build</span>
+            <h2>The Components</h2>
+        </div>
+        <div class="comp-grid">
+            <div class="comp-item">
+                <div class="comp-img-wrapper"><img src="https://images.unsplash.com/photo-1553406830-ef2513450d76?auto=format&fit=crop&q=80&w=400"></div>
+                <h4>Arduino Uno</h4>
+                <span>Central Controller</span>
+            </div>
+            <div class="comp-item">
+                <div class="comp-img-wrapper"><img src="https://images.unsplash.com/photo-1587620962725-abab7fe55159?auto=format&fit=crop&q=80&w=400"></div>
+                <h4>4x4 Keypad</h4>
+                <span>Input Interface</span>
+            </div>
+            <div class="comp-item">
+                <div class="comp-img-wrapper"><img src="https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=400"></div>
+                <h4>Servo Motor</h4>
+                <span>Lock Actuator</span>
+            </div>
+            <div class="comp-item">
+                <div class="comp-img-wrapper"><img src="https://images.unsplash.com/photo-1563770660941-20978e870e96?auto=format&fit=crop&q=80&w=400"></div>
+                <h4>LCD I2C</h4>
+                <span>Status Display</span>
+            </div>
+        </div>
+    </section>
+
+    <section id="stats" class="section">
+        <div class="glass-card stats-container">
+            <div class="stat-box">
+                <div class="circle-progress" style="--p:100; --c:#9d50bb;">100%</div>
+                <p>Research</p>
+            </div>
+            <div class="stat-box">
+                <div class="circle-progress" style="--p:90; --c:#00d2ff;">90%</div>
+                <p>Assembly</p>
+            </div>
+            <div class="stat-box">
+                <div class="circle-progress" style="--p:85; --c:#9d50bb;">85%</div>
+                <p>Logic</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="demo" class="section">
+        <div class="video-wrapper glass-card">
+            <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" frameborder="0" allowfullscreen></iframe>
+        </div>
+    </section>
+
+    <footer>
+        <p>CORE<span>LOCK</span> Project &copy; 2024</p>
+    </footer>
+
+    <script src="script.js"></script>
 </body>
 </html>
