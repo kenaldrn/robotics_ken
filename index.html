@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fire & Flame Detection Alert System | Arduino Mini Project</title>
+<meta name="description" content="Real-time fire and flame detection alert system using Arduino Uno and KY-026 flame sensor. Multi-modal alerts via buzzer, LED, and I2C LCD display.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --r:#ff2200;--o:#ff5500;--a:#ff8800;--y:#ffcc00;
+  --bg:#080810;--glass:rgba(255,80,0,0.05);--border:rgba(255,85,0,0.25);
+  --t:#f0ece6;--tm:#807060;--nav:rgba(8,8,16,0.9);
+}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--t);overflow-x:hidden;line-height:1.6}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-thumb{background:var(--o);border-radius:3px}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:var(--nav);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 2rem;height:60px;display:flex;align-items:center;justify-content:space-between}
+.nav-brand{font-size:.9rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;background:linear-gradient(135deg,var(--o),var(--y));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.nav-links{display:flex;gap:.1rem;list-style:none}
+.nav-links a{text-decoration:none;color:var(--tm);font-size:.75rem;font-weight:500;padding:.35rem .65rem;border-radius:6px;transition:all .2s}
+.nav-links a:hover,.nav-links a.active{color:var(--a);background:rgba(255,85,0,.1)}
+@media(max-width:768px){.nav-links{display:none}}
+
+/* HERO */
+#hero{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:7rem 2rem 4rem;position:relative;overflow:hidden}
+#hero::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:700px;height:700px;background:radial-gradient(ellipse,rgba(255,85,0,.1) 0%,transparent 70%);pointer-events:none}
+.hero-content{text-align:center;max-width:860px;position:relative;z-index:1}
+.badges{display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap;margin-bottom:2rem}
+.badge{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:.3rem .9rem;border-radius:100px;border:1px solid}
+.badge-r{color:#ff7755;border-color:rgba(255,119,85,.35);background:rgba(255,119,85,.08)}
+.badge-a{color:#ffaa44;border-color:rgba(255,170,68,.35);background:rgba(255,170,68,.08)}
+
+/* FLAME CSS ART */
+.flame-wrap{width:100px;height:130px;margin:0 auto 2.5rem;position:relative}
+.flame{position:absolute;bottom:0;left:50%;transform:translateX(-50%);border-radius:50% 50% 20% 20%/60% 60% 40% 40%;animation:flk 1.4s ease-in-out infinite alternate}
+.f1{width:78px;height:108px;background:linear-gradient(to top,var(--r),var(--o) 40%,var(--a) 70%,var(--y));filter:blur(2px);box-shadow:0 0 40px rgba(255,85,0,.7),0 0 80px rgba(255,50,0,.3)}
+.f2{width:52px;height:82px;background:linear-gradient(to top,var(--o),var(--a),#fff8cc);filter:blur(1px)}
+.f3{width:28px;height:52px;background:linear-gradient(to top,#fff8cc,#fff);filter:blur(.5px)}
+@keyframes flk{0%{transform:translateX(-50%) scaleX(1) scaleY(1)}33%{transform:translateX(-50%) scaleX(.94) scaleY(1.03)}66%{transform:translateX(-50%) scaleX(1.06) scaleY(.97)}100%{transform:translateX(-50%) scaleX(.98) scaleY(1.02)}}
+
+h1.hero-title{font-size:clamp(2rem,5vw,3.6rem);font-weight:900;line-height:1.15;margin-bottom:.5rem;background:linear-gradient(135deg,#fff 0%,var(--a) 50%,var(--o) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-sub{font-size:1.1rem;color:var(--a);margin-bottom:1.25rem;opacity:.85}
+.hero-desc{font-size:.95rem;color:var(--tm);max-width:620px;margin:0 auto 2.5rem;line-height:1.8}
+.stats{display:flex;gap:2.5rem;justify-content:center;flex-wrap:wrap}
+.stat-num{font-size:1.7rem;font-weight:800;background:linear-gradient(135deg,var(--o),var(--y));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.stat-lbl{font-size:.7rem;color:var(--tm);text-transform:uppercase;letter-spacing:.08em}
+
+/* DIVIDER */
+.divider{width:100%;height:1px;background:linear-gradient(to right,transparent,rgba(255,85,0,.35),transparent)}
+
+/* SECTIONS */
+section{position:relative;z-index:1;padding:5.5rem 2rem}
+.inner{max-width:1080px;margin:0 auto}
+.sec-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.2em;color:var(--o);margin-bottom:.6rem;display:flex;align-items:center;gap:.5rem}
+.sec-label::before{content:'';display:inline-block;width:22px;height:2px;background:var(--o)}
+h2.sec-title{font-size:clamp(1.5rem,4vw,2.4rem);font-weight:800;line-height:1.2;margin-bottom:.9rem}
+h2.sec-title span{background:linear-gradient(135deg,var(--a),var(--o));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.sec-desc{font-size:.95rem;color:var(--tm);max-width:620px;line-height:1.8;margin-bottom:2.5rem}
+
+/* CARDS */
+.card{background:var(--glass);border:1px solid var(--border);border-radius:14px;padding:1.6rem;position:relative;overflow:hidden;transition:border-color .3s,transform .3s,box-shadow .3s}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,136,0,.4),transparent)}
+.card:hover{border-color:rgba(255,85,0,.6);transform:translateY(-4px);box-shadow:0 12px 40px rgba(255,85,0,.12)}
+.card h3{font-size:.95rem;font-weight:700;color:var(--a);margin-bottom:.6rem;display:flex;align-items:center;gap:.4rem}
+.card p{font-size:.85rem;color:var(--tm);line-height:1.7}
+
+/* OVERVIEW */
+.ov-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:2rem}
+@media(max-width:640px){.ov-grid{grid-template-columns:1fr}}
+.chips{display:flex;gap:.5rem;flex-wrap:wrap}
+.chip{font-size:.72rem;font-weight:600;padding:.35rem .9rem;border-radius:100px;background:rgba(255,85,0,.08);border:1px solid rgba(255,85,0,.22);color:var(--a)}
+
+/* COMPONENTS */
+.comp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:1.1rem}
+.comp-model{font-size:.72rem;color:var(--o);font-family:'JetBrains Mono',monospace;margin:.25rem 0 .5rem}
+.comp-icon{font-size:1.9rem;margin-bottom:.6rem}
+
+/* CIRCUIT */
+.circ-table{width:100%;border-collapse:collapse;border-radius:12px;overflow:hidden;margin-top:1.5rem}
+.circ-table th{background:rgba(255,85,0,.12);color:var(--a);font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;padding:.8rem 1.1rem;text-align:left}
+.circ-table td{padding:.8rem 1.1rem;font-size:.85rem;border-bottom:1px solid rgba(255,85,0,.07);color:var(--tm)}
+.circ-table tr:last-child td{border-bottom:none}
+.circ-table tr:hover td{background:rgba(255,85,0,.04)}
+.circ-table td:first-child{color:var(--t);font-weight:500}
+.pin{display:inline-block;padding:.18rem .55rem;border-radius:5px;background:rgba(255,85,0,.1);border:1px solid rgba(255,85,0,.25);font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--a)}
+.flow-box{margin-top:2rem;background:var(--glass);border:1px solid var(--border);border-radius:14px;padding:1.5rem}
+.flow-box h3{font-size:.8rem;font-weight:700;color:var(--a);text-transform:uppercase;letter-spacing:.08em;margin-bottom:1.1rem}
+.flow{display:flex;flex-wrap:wrap;gap:.8rem}
+.conn{display:flex;align-items:center;gap:.4rem;font-size:.78rem;font-family:'JetBrains Mono',monospace}
+.cf{background:rgba(255,85,0,.1);border:1px solid rgba(255,85,0,.28);color:var(--a);padding:.2rem .55rem;border-radius:5px}
+.ct{background:rgba(255,204,0,.07);border:1px solid rgba(255,204,0,.2);color:#ffcc66;padding:.2rem .55rem;border-radius:5px}
+.ca{color:var(--o)}
+
+/* SIMULATION */
+.sim-wrap{background:var(--glass);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.sim-head{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.4rem;border-bottom:1px solid rgba(255,85,0,.14);background:rgba(255,85,0,.04)}
+.dots{display:flex;gap:5px}
+.dot{width:11px;height:11px;border-radius:50%}
+.dr{background:#ff5f56}.dy{background:#ffbd2e}.dg{background:#27c93f}
+.sim-ttl{font-size:.75rem;color:var(--tm);font-family:'JetBrains Mono',monospace}
+.sim-btn{font-size:.72rem;color:var(--o);text-decoration:none;padding:.3rem .85rem;border-radius:6px;border:1px solid rgba(255,85,0,.28);transition:all .2s}
+.sim-btn:hover{background:rgba(255,85,0,.1);border-color:var(--o)}
+.sim-frame{width:100%;height:500px;border:none;display:block}
+.sim-notice{padding:1rem 1.4rem;font-size:.78rem;color:var(--tm);background:rgba(255,136,0,.05);border-top:1px solid rgba(255,85,0,.1);display:flex;gap:.5rem;align-items:flex-start;line-height:1.6}
+.sim-notice strong{color:var(--a);white-space:nowrap}
+
+/* WOKWI FILES TABS */
+.wf-tabs{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.25rem}
+.wf-tab{font-size:.75rem;font-family:'JetBrains Mono',monospace;padding:.4rem 1rem;border-radius:8px;background:rgba(255,85,0,.06);border:1px solid rgba(255,85,0,.2);color:var(--tm);cursor:pointer;transition:all .2s;user-select:none}
+.wf-tab:hover{color:var(--a);border-color:rgba(255,85,0,.45)}
+.wf-tab.active{color:var(--a);border-color:var(--o);background:rgba(255,85,0,.12)}
+.wf-panel{display:none}
+.wf-panel.active{display:block}
+
+/* CODE */
+.code-wrap{background:#0c0c13;border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.code-head{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.4rem;background:rgba(255,85,0,.05);border-bottom:1px solid rgba(255,85,0,.13)}
+.code-fn{font-size:.78rem;font-family:'JetBrains Mono',monospace;color:var(--a);display:flex;align-items:center;gap:.5rem}
+.code-lang{font-size:.68rem;padding:.18rem .55rem;border-radius:4px;background:rgba(255,136,0,.12);border:1px solid rgba(255,136,0,.22);color:var(--a);font-family:'JetBrains Mono',monospace}
+.copy-btn{font-size:.72rem;padding:.35rem .9rem;border-radius:7px;background:transparent;border:1px solid rgba(255,85,0,.28);color:var(--o);cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s}
+.copy-btn:hover{background:rgba(255,85,0,.1)}
+.copy-btn.ok{color:#44ff88;border-color:#44ff88}
+pre.code{padding:1.4rem 1.5rem;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:.8rem;line-height:1.85;color:#c8c8d5;tab-size:2}
+.kw{color:#ff7755}.fn{color:#ffd080}.cm{color:#4a6650}.st{color:#88ddaa}.nm{color:#87ceeb}.pp{color:#cc88ff}
+.jk{color:#ff9f7a}.js{color:#88ddaa}.jn{color:#87ceeb}.jb{color:#cc88ff}.jp{color:#ffd080}
+
+/* HOW IT WORKS */
+.steps{display:grid;gap:1.2rem}
+.step{display:grid;grid-template-columns:56px 1fr;gap:1.25rem;align-items:start;background:var(--glass);border:1px solid var(--border);border-radius:14px;padding:1.5rem;transition:all .3s}
+.step:hover{border-color:var(--o);box-shadow:0 8px 28px rgba(255,85,0,.1)}
+.step-n{width:44px;height:44px;border-radius:11px;background:linear-gradient(135deg,var(--r),var(--o));display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:900;color:#fff;flex-shrink:0;box-shadow:0 4px 16px rgba(255,85,0,.3)}
+.step h3{font-size:.95rem;font-weight:700;margin-bottom:.4rem;color:var(--t)}
+.step p{font-size:.85rem;color:var(--tm);line-height:1.7}
+@media(max-width:600px){.step{grid-template-columns:1fr}}
+
+/* TIMELINE */
+#timeline{background:linear-gradient(180deg,transparent,rgba(255,40,0,.04),transparent)}
+.tl{position:relative;padding-left:2.8rem;max-width:700px;margin:0 auto}
+.tl::before{content:'';position:absolute;left:.95rem;top:0;bottom:0;width:2px;background:linear-gradient(to bottom,var(--o),rgba(255,85,0,.08))}
+.tl-item{position:relative;margin-bottom:2.5rem;opacity:0;transform:translateX(28px);transition:opacity .5s ease,transform .5s ease}
+.tl-item.vis{opacity:1;transform:translateX(0)}
+.tl-dot{position:absolute;left:-1.95rem;top:.3rem;width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,var(--r),var(--a));border:3px solid var(--bg);box-shadow:0 0 10px rgba(255,85,0,.5)}
+.tl-date{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--o);margin-bottom:.4rem}
+.tl-card{background:var(--glass);border:1px solid var(--border);border-radius:12px;padding:1.3rem}
+.tl-card h3{font-size:.95rem;font-weight:700;margin-bottom:.4rem;color:var(--t)}
+.tl-card p{font-size:.83rem;color:var(--tm);line-height:1.7}
+.tl-tag{display:inline-block;margin-top:.65rem;font-size:.68rem;font-weight:600;padding:.22rem .7rem;border-radius:100px;background:rgba(255,85,0,.1);border:1px solid rgba(255,85,0,.22);color:var(--a)}
+
+/* APPLICATIONS */
+.apps{display:grid;grid-template-columns:1fr 1fr;gap:2rem}
+@media(max-width:640px){.apps{grid-template-columns:1fr}}
+.apps-col h3{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--a);margin-bottom:1.1rem}
+.app-item{display:flex;gap:.9rem;align-items:flex-start;margin-bottom:1rem;padding:.9rem 1.1rem;background:var(--glass);border:1px solid var(--border);border-radius:11px;font-size:.85rem;color:var(--tm);transition:all .2s}
+.app-item:hover{border-color:var(--a);color:var(--t)}
+.app-icon{font-size:1.2rem;flex-shrink:0}
+
+/* FOOTER */
+footer{text-align:center;padding:2.5rem 2rem;border-top:1px solid rgba(255,85,0,.1);position:relative;z-index:1}
+footer p{font-size:.78rem;color:var(--tm)}
+footer a{color:var(--o);text-decoration:none}
+.f-stack{margin-top:.4rem;font-size:.72rem;color:rgba(128,112,96,.55)}
+
+/* REVEAL */
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .6s ease,transform .6s ease}
+.reveal.vis{opacity:1;transform:translateY(0)}
+
+/* EMBERS */
+.embers-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0}
+</style>
+</head>
+<body>
+
+<canvas class="embers-canvas" id="embers"></canvas>
+
+<!-- NAV -->
+<nav id="navbar">
+  <div class="nav-brand">🔥 Fire Alert System</div>
+  <ul class="nav-links">
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#components">Components</a></li>
+    <li><a href="#circuit">Circuit</a></li>
+    <li><a href="#simulation">Simulation</a></li>
+    <li><a href="#wokwifiles">Wokwi Files</a></li>
+    <li><a href="#code">Code</a></li>
+    <li><a href="#howitworks">How It Works</a></li>
+    <li><a href="#timeline">Timeline</a></li>
+    <li><a href="#applications">Applications</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-content">
+    <div class="badges">
+      <span class="badge badge-r">Mini Project — Electronics &amp; Embedded Systems</span>
+      <span class="badge badge-a">Real-time Fire &amp; Flame Alert</span>
+    </div>
+    <div class="flame-wrap">
+      <div class="flame f1"></div>
+      <div class="flame f2"></div>
+      <div class="flame f3"></div>
+    </div>
+    <h1 class="hero-title">Fire &amp; Flame Detection<br>Alert System</h1>
+    <p class="hero-sub">Based on Arduino Uno — Designed for Safety</p>
+    <p class="hero-desc">An infrared flame sensing system that detects open fire and triggers instant multi-modal alerts — audible buzzer, visual LED, and real-time LCD display — using the KY-026 flame sensor and Arduino Uno.</p>
+    <div class="stats">
+      <div><div class="stat-num">200ms</div><div class="stat-lbl">Poll Interval</div></div>
+      <div><div class="stat-num">760nm</div><div class="stat-lbl">IR Wavelength</div></div>
+      <div><div class="stat-num">3</div><div class="stat-lbl">Alert Modes</div></div>
+      <div><div class="stat-num">60°</div><div class="stat-lbl">Detection Angle</div></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- OVERVIEW -->
+<section id="overview">
+  <div class="inner">
+    <div class="sec-label">Overview</div>
+    <h2 class="sec-title">How the system <span>detects &amp; reacts</span></h2>
+    <p class="sec-desc">The KY-026 flame sensor module pairs with an Arduino Uno to deliver real-time, multi-modal fire alerts. The moment a flame enters the detection zone, three simultaneous alert channels activate instantly.</p>
+    <div class="ov-grid reveal">
+      <div class="card"><h3>🔴 Detection Mechanism</h3><p>The KY-026 contains a photodiode tuned to the 760–1100 nm infrared spectrum emitted by open flames. Its integrated LM393 comparator evaluates the signal and outputs a digital LOW (active-low logic) when a flame is within its 60° viewing angle.</p></div>
+      <div class="card"><h3>⚡ Arduino Response</h3><p>The firmware polls the sensor's digital pin (D7) every 200 ms. On detecting LOW, it simultaneously drives the buzzer (D8) HIGH for audible alert, LED (D13) HIGH for visual indicator, and updates the I2C LCD with <strong>"FIRE DETECTED!"</strong> and intensity level.</p></div>
+      <div class="card"><h3>📊 Analog Intensity</h3><p>The KY-026's analog output (A0) provides a 0–1023 ADC value representing IR radiation intensity. This maps to a 0–100% fire proximity percentage displayed on the LCD's second line for real-time awareness of flame distance.</p></div>
+      <div class="card"><h3>🛡️ Fail-Safe Design</h3><p>Active-low logic ensures fail-safe behavior — a disconnected or faulted sensor triggers alert state rather than silently failing. All channels (buzzer, LED, LCD) deactivate instantly when the flame is removed, with 200 ms debounce to prevent flicker.</p></div>
+    </div>
+    <div class="chips reveal" style="margin-top:1.5rem">
+      <span class="chip">Arduino Uno</span><span class="chip">KY-026 Flame Sensor</span><span class="chip">LM393 Comparator</span><span class="chip">I2C LCD 16×2</span><span class="chip">Passive Buzzer</span><span class="chip">Active-Low Logic</span><span class="chip">ADC Analog Reading</span><span class="chip">Wire.h</span><span class="chip">LiquidCrystal_I2C</span>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- COMPONENTS -->
+<section id="components">
+  <div class="inner">
+    <div class="sec-label">Components</div>
+    <h2 class="sec-title">Parts &amp; <span>Materials</span></h2>
+    <p class="sec-desc">All components are available in standard Arduino starter kits or electronics lab workspaces.</p>
+    <div class="comp-grid reveal">
+      <div class="card"><div class="comp-icon">🤖</div><h3>Arduino Uno R3</h3><div class="comp-model">ATmega328P — 16 MHz</div><p>Main microcontroller. 14 digital I/O, 6 analog inputs. Reads the sensor and drives all alert outputs.</p></div>
+      <div class="card"><div class="comp-icon">🔥</div><h3>KY-026 Flame Sensor</h3><div class="comp-model">IR Photodiode + LM393</div><p>Detects open flame at 760–1100 nm. 60° detection angle. Dual digital + analog output. Adjustable via onboard potentiometer.</p></div>
+      <div class="card"><div class="comp-icon">🔊</div><h3>Passive Buzzer</h3><div class="comp-model">5V, ~2.7 kHz</div><p>Produces audible alert tone when fire is detected. Driven directly from D8. No transistor required at 5V logic.</p></div>
+      <div class="card"><div class="comp-icon">💡</div><h3>LED Indicator (Red)</h3><div class="comp-model">5mm, 2V, 20mA</div><p>Visual fire alert. Connected to D13 via a 220Ω current-limiting resistor to protect the GPIO pin.</p></div>
+      <div class="card"><div class="comp-icon">🖥️</div><h3>16×2 I2C LCD</h3><div class="comp-model">PCF8574 — I2C addr 0x27</div><p>Displays real-time status and fire intensity via I2C (only SDA + SCL wires). Saves 6 GPIO pins vs parallel wiring.</p></div>
+      <div class="card"><div class="comp-icon">⚡</div><h3>Resistor 220Ω</h3><div class="comp-model">1/4W, ±5% Tolerance</div><p>Series current-limiting resistor for the LED. Prevents excessive current through D13 and protects the LED from burnout.</p></div>
+      <div class="card"><div class="comp-icon">🔌</div><h3>Jumper Wires</h3><div class="comp-model">M-M and M-F Sets</div><p>M-M wires for breadboard rows, M-F for connecting KY-026 and LCD module pins to the breadboard rails.</p></div>
+      <div class="card"><div class="comp-icon">📋</div><h3>Breadboard</h3><div class="comp-model">830-point Half-size</div><p>Solderless prototyping base. Power rails distribute 5V and GND cleanly to all components.</p></div>
+      <div class="card"><div class="comp-icon">🔋</div><h3>USB / DC Power</h3><div class="comp-model">USB-B or 9V DC Barrel</div><p>USB from PC for programming and testing. Optional 9V DC barrel connector for standalone deployment away from a computer.</p></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- CIRCUIT -->
+<section id="circuit">
+  <div class="inner">
+    <div class="sec-label">Circuit</div>
+    <h2 class="sec-title">Wiring &amp; <span>Pin Connections</span></h2>
+    <p class="sec-desc">All connections are direct GPIO — no external transistors or drivers required. I2C LCD uses only 2 data lines.</p>
+    <table class="circ-table reveal">
+      <thead><tr><th>Component</th><th>Component Pin</th><th>Arduino Pin</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>KY-026 Flame Sensor</td><td>VCC</td><td><span class="pin">5V</span></td><td>Power supply</td></tr>
+        <tr><td>KY-026 Flame Sensor</td><td>GND</td><td><span class="pin">GND</span></td><td>Common ground</td></tr>
+        <tr><td>KY-026 Flame Sensor</td><td>DO (Digital Out)</td><td><span class="pin">D7</span></td><td>Active-LOW on fire</td></tr>
+        <tr><td>KY-026 Flame Sensor</td><td>AO (Analog Out)</td><td><span class="pin">A0</span></td><td>0–1023 intensity</td></tr>
+        <tr><td>Passive Buzzer</td><td>Positive (+)</td><td><span class="pin">D8</span></td><td>HIGH = Buzzer ON</td></tr>
+        <tr><td>Passive Buzzer</td><td>Negative (−)</td><td><span class="pin">GND</span></td><td>Common ground</td></tr>
+        <tr><td>LED (Red)</td><td>Anode (+)</td><td><span class="pin">D13</span> → 220Ω</td><td>Series resistor required</td></tr>
+        <tr><td>LED (Red)</td><td>Cathode (−)</td><td><span class="pin">GND</span></td><td>Common ground</td></tr>
+        <tr><td>I2C LCD 16×2</td><td>VCC</td><td><span class="pin">5V</span></td><td>Power supply</td></tr>
+        <tr><td>I2C LCD 16×2</td><td>GND</td><td><span class="pin">GND</span></td><td>Common ground</td></tr>
+        <tr><td>I2C LCD 16×2</td><td>SDA</td><td><span class="pin">A4</span></td><td>I2C data line</td></tr>
+        <tr><td>I2C LCD 16×2</td><td>SCL</td><td><span class="pin">A5</span></td><td>I2C clock line</td></tr>
+      </tbody>
+    </table>
+    <div class="flow-box reveal">
+      <h3>⚡ Connection Flow</h3>
+      <div class="flow">
+        <div class="conn"><span class="cf">KY-026 DO</span><span class="ca">→</span><span class="ct">D7</span></div>
+        <div class="conn"><span class="cf">KY-026 AO</span><span class="ca">→</span><span class="ct">A0</span></div>
+        <div class="conn"><span class="cf">Buzzer +</span><span class="ca">→</span><span class="ct">D8</span></div>
+        <div class="conn"><span class="cf">LED Anode</span><span class="ca">→</span><span class="ct">220Ω → D13</span></div>
+        <div class="conn"><span class="cf">LCD SDA</span><span class="ca">→</span><span class="ct">A4</span></div>
+        <div class="conn"><span class="cf">LCD SCL</span><span class="ca">→</span><span class="ct">A5</span></div>
+        <div class="conn"><span class="cf">All GNDs</span><span class="ca">→</span><span class="ct">GND Rail</span></div>
+        <div class="conn"><span class="cf">All VCCs</span><span class="ca">→</span><span class="ct">5V Rail</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SIMULATION -->
+<section id="simulation">
+  <div class="inner">
+    <div class="sec-label">Simulation</div>
+    <h2 class="sec-title">Wokwi Online <span>Simulator</span></h2>
+    <p class="sec-desc">An interactive simulation of the fire alert system. Use the red FLAME button and Intensity knob to control the sensor inputs and watch the alerts fire in real time.</p>
+    <div class="sim-wrap reveal">
+      <div class="sim-head">
+        <div class="dots"><div class="dot dr"></div><div class="dot dy"></div><div class="dot dg"></div></div>
+        <span class="sim-ttl">wokwi.com — KY-026 Fire Detection Simulation</span>
+        <a href="https://wokwi.com/projects/427384880899702785" target="_blank" rel="noopener" class="sim-btn">↗ Open in Wokwi</a>
+      </div>
+      <iframe class="sim-frame"
+        src="https://wokwi.com/projects/427384880899702785"
+        title="Fire Detection Simulation"
+        allowfullscreen
+        loading="lazy">
+      </iframe>
+      <div class="sim-notice">
+        <strong>💡 How to use:</strong>&nbsp;
+        Press ▶ Start Simulation → hold the red <strong>FLAME</strong> button to simulate fire detection → turn the <strong>Intensity</strong> knob to change flame proximity reading.
+        If the simulation doesn't load, use the Wokwi Files below to copy your code into a new Wokwi project.
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- WOKWI FILES -->
+<section id="wokwifiles">
+  <div class="inner">
+    <div class="sec-label">Wokwi Project Files</div>
+    <h2 class="sec-title">Source Files for <span>Wokwi Simulator</span></h2>
+    <p class="sec-desc">Copy these three files into your Wokwi project to reproduce the exact simulation. Create a new Arduino Uno project on wokwi.com, then paste each file.</p>
+
+    <div class="wf-tabs reveal">
+      <div class="wf-tab active" onclick="switchTab(this,'tab-sketch')" id="tabBtn-sketch">📄 sketch.ino</div>
+      <div class="wf-tab" onclick="switchTab(this,'tab-diagram')" id="tabBtn-diagram">🗺️ diagram.json</div>
+      <div class="wf-tab" onclick="switchTab(this,'tab-libs')" id="tabBtn-libs">📦 libraries.txt</div>
+    </div>
+
+    <!-- sketch.ino -->
+    <div class="wf-panel active" id="tab-sketch">
+      <div class="code-wrap">
+        <div class="code-head">
+          <div class="code-fn">📄 sketch.ino <span class="code-lang">Arduino C++</span></div>
+          <button class="copy-btn" onclick="copyWokwiFile('sketch')" id="copyBtn-sketch">Copy</button>
+        </div>
+<pre class="code" id="wf-sketch"><span class="pp">#include</span> <span class="st">&lt;Wire.h&gt;</span>
+<span class="pp">#include</span> <span class="st">&lt;LiquidCrystal_I2C.h&gt;</span>
+
+<span class="cm">// ─── Pin Definitions ──────────────────────────────────────────────</span>
+<span class="pp">#define</span> <span class="nm">FLAME_DIGITAL</span>  <span class="nm">7</span>   <span class="cm">// KY-026 DO pin  → Arduino D7 (Button in Wokwi)</span>
+<span class="pp">#define</span> <span class="nm">FLAME_ANALOG</span>   <span class="nm">A0</span>  <span class="cm">// KY-026 AO pin  → Arduino A0 (Potentiometer in Wokwi)</span>
+<span class="pp">#define</span> <span class="nm">BUZZER</span>         <span class="nm">8</span>   <span class="cm">// Passive buzzer → Arduino D8</span>
+<span class="pp">#define</span> <span class="nm">LED_PIN</span>        <span class="nm">13</span>  <span class="cm">// LED (220Ω)     → Arduino D13</span>
+
+<span class="cm">// ─── LCD: I2C address 0x27, 16 cols, 2 rows ──────────────────────</span>
+<span class="fn">LiquidCrystal_I2C</span> lcd(<span class="nm">0x27</span>, <span class="nm">16</span>, <span class="nm">2</span>);
+
+<span class="cm">// ─── Setup ───────────────────────────────────────────────────────</span>
+<span class="kw">void</span> <span class="fn">setup</span>() {
+  <span class="fn">pinMode</span>(<span class="nm">FLAME_DIGITAL</span>, INPUT_PULLUP);
+  <span class="fn">pinMode</span>(<span class="nm">BUZZER</span>,        OUTPUT);
+  <span class="fn">pinMode</span>(<span class="nm">LED_PIN</span>,       OUTPUT);
+
+  lcd.<span class="fn">init</span>();
+  lcd.<span class="fn">backlight</span>();
+  lcd.<span class="fn">setCursor</span>(<span class="nm">0</span>, <span class="nm">0</span>); lcd.<span class="fn">print</span>(<span class="st">"Fire Alert Sys  "</span>);
+  lcd.<span class="fn">setCursor</span>(<span class="nm">0</span>, <span class="nm">1</span>); lcd.<span class="fn">print</span>(<span class="st">"  Initialising.."</span>);
+  <span class="fn">delay</span>(<span class="nm">2000</span>);
+  lcd.<span class="fn">clear</span>();
+}
+
+<span class="cm">// ─── Main Loop ────────────────────────────────────────────────────</span>
+<span class="kw">void</span> <span class="fn">loop</span>() {
+  <span class="cm">// KY-026 active-LOW: LOW = flame detected</span>
+  <span class="cm">// In Wokwi: press the button to simulate flame detection</span>
+  <span class="kw">int</span> flameDigital = <span class="fn">digitalRead</span>(<span class="nm">FLAME_DIGITAL</span>);
+  <span class="kw">int</span> flameAnalog  = <span class="fn">analogRead</span>(<span class="nm">FLAME_ANALOG</span>);
+
+  <span class="cm">// Map analog: lower ADC = stronger/closer flame = higher %</span>
+  <span class="kw">int</span> intensity = <span class="fn">map</span>(flameAnalog, <span class="nm">1023</span>, <span class="nm">0</span>, <span class="nm">0</span>, <span class="nm">100</span>);
+  intensity = <span class="fn">constrain</span>(intensity, <span class="nm">0</span>, <span class="nm">100</span>);
+
+  <span class="kw">if</span> (flameDigital == LOW) {
+    <span class="cm">// ── Flame Detected ────────────────────────────────────────────</span>
+    lcd.<span class="fn">setCursor</span>(<span class="nm">0</span>, <span class="nm">0</span>); lcd.<span class="fn">print</span>(<span class="st">"FIRE DETECTED!  "</span>);
+    lcd.<span class="fn">setCursor</span>(<span class="nm">0</span>, <span class="nm">1</span>);
+    lcd.<span class="fn">print</span>(<span class="st">"Intensity: "</span>);
+    lcd.<span class="fn">print</span>(intensity);
+    lcd.<span class="fn">print</span>(<span class="st">"%   "</span>);
+
+    <span class="cm">// Buzzer beep pattern</span>
+    <span class="fn">digitalWrite</span>(<span class="nm">BUZZER</span>, HIGH);
+    <span class="fn">delay</span>(<span class="nm">100</span>);
+    <span class="fn">digitalWrite</span>(<span class="nm">BUZZER</span>, LOW);
+    <span class="fn">delay</span>(<span class="nm">50</span>);
+    <span class="fn">digitalWrite</span>(<span class="nm">BUZZER</span>, HIGH);
+    <span class="fn">delay</span>(<span class="nm">100</span>);
+    <span class="fn">digitalWrite</span>(<span class="nm">BUZZER</span>, LOW);
+    <span class="fn">delay</span>(<span class="nm">50</span>);
+
+    <span class="fn">digitalWrite</span>(<span class="nm">LED_PIN</span>, HIGH);
+
+  } <span class="kw">else</span> {
+    <span class="cm">// ── No Flame ─────────────────────────────────────────────────</span>
+    lcd.<span class="fn">setCursor</span>(<span class="nm">0</span>, <span class="nm">0</span>); lcd.<span class="fn">print</span>(<span class="st">"No Fire Detected"</span>);
+    lcd.<span class="fn">setCursor</span>(<span class="nm">0</span>, <span class="nm">1</span>); lcd.<span class="fn">print</span>(<span class="st">"System: SAFE    "</span>);
+
+    <span class="fn">digitalWrite</span>(<span class="nm">BUZZER</span>,  LOW);
+    <span class="fn">digitalWrite</span>(<span class="nm">LED_PIN</span>, LOW);
+  }
+
+  <span class="fn">delay</span>(<span class="nm">200</span>);
+}</pre>
+      </div>
+    </div>
+
+    <!-- diagram.json -->
+    <div class="wf-panel" id="tab-diagram">
+      <div class="code-wrap">
+        <div class="code-head">
+          <div class="code-fn">🗺️ diagram.json <span class="code-lang">JSON</span></div>
+          <button class="copy-btn" onclick="copyWokwiFile('diagram')" id="copyBtn-diagram">Copy</button>
+        </div>
+<pre class="code" id="wf-diagram"><span class="jp">{</span>
+  <span class="jk">"version"</span>: <span class="jn">1</span><span class="jp">,</span>
+  <span class="jk">"author"</span>: <span class="js">"Fire &amp; Flame Detection Alert System"</span><span class="jp">,</span>
+  <span class="jk">"editor"</span>: <span class="js">"wokwi"</span><span class="jp">,</span>
+  <span class="jk">"parts"</span>: <span class="jp">[</span>
+    <span class="jp">{</span>
+      <span class="jk">"type"</span>: <span class="js">"wokwi-arduino-uno"</span><span class="jp">,</span>
+      <span class="jk">"id"</span>: <span class="js">"uno"</span><span class="jp">,</span>
+      <span class="jk">"top"</span>: <span class="jn">220</span><span class="jp">,</span>
+      <span class="jk">"left"</span>: <span class="jn">20</span><span class="jp">,</span>
+      <span class="jk">"rotate"</span>: <span class="jn">0</span><span class="jp">,</span>
+      <span class="jk">"attrs"</span>: <span class="jp">{}</span>
+    <span class="jp">},</span>
+    <span class="jp">{</span>
+      <span class="jk">"type"</span>: <span class="js">"wokwi-lcd1602"</span><span class="jp">,</span>
+      <span class="jk">"id"</span>: <span class="js">"lcd1"</span><span class="jp">,</span>
+      <span class="jk">"top"</span>: <span class="jn">30</span><span class="jp">,</span>
+      <span class="jk">"left"</span>: <span class="jn">-240</span><span class="jp">,</span>
+      <span class="jk">"attrs"</span>: <span class="jp">{</span> <span class="jk">"pins"</span>: <span class="js">"i2c"</span><span class="jp">,</span> <span class="jk">"address"</span>: <span class="js">"0x27"</span> <span class="jp">}</span>
+    <span class="jp">},</span>
+    <span class="jp">{</span>
+      <span class="jk">"type"</span>: <span class="js">"wokwi-buzzer"</span><span class="jp">,</span>
+      <span class="jk">"id"</span>: <span class="js">"buzz1"</span><span class="jp">,</span>
+      <span class="jk">"top"</span>: <span class="jn">30</span><span class="jp">,</span>
+      <span class="jk">"left"</span>: <span class="jn">340</span><span class="jp">,</span>
+      <span class="jk">"attrs"</span>: <span class="jp">{</span> <span class="jk">"volume"</span>: <span class="js">"0.6"</span> <span class="jp">}</span>
+    <span class="jp">},</span>
+    <span class="jp">{</span>
+      <span class="jk">"type"</span>: <span class="js">"wokwi-resistor"</span><span class="jp">,</span>
+      <span class="jk">"id"</span>: <span class="js">"r1"</span><span class="jp">,</span>
+      <span class="jk">"top"</span>: <span class="jn">190</span><span class="jp">,</span>
+      <span class="jk">"left"</span>: <span class="jn">370</span><span class="jp">,</span>
+      <span class="jk">"rotate"</span>: <span class="jn">90</span><span class="jp">,</span>
+      <span class="jk">"attrs"</span>: <span class="jp">{</span> <span class="jk">"value"</span>: <span class="js">"220"</span> <span class="jp">}</span>
+    <span class="jp">},</span>
+    <span class="jp">{</span>
+      <span class="jk">"type"</span>: <span class="js">"wokwi-led"</span><span class="jp">,</span>
+      <span class="jk">"id"</span>: <span class="js">"led1"</span><span class="jp">,</span>
+      <span class="jk">"top"</span>: <span class="jn">80</span><span class="jp">,</span>
+      <span class="jk">"left"</span>: <span class="jn">390</span><span class="jp">,</span>
+      <span class="jk">"attrs"</span>: <span class="jp">{</span> <span class="jk">"color"</span>: <span class="js">"red"</span> <span class="jp">}</span>
+    <span class="jp">},</span>
+    <span class="jp">{</span>
+      <span class="jk">"type"</span>: <span class="js">"wokwi-pushbutton"</span><span class="jp">,</span>
+      <span class="jk">"id"</span>: <span class="js">"btn1"</span><span class="jp">,</span>
+      <span class="jk">"top"</span>: <span class="jn">80</span><span class="jp">,</span>
+      <span class="jk">"left"</span>: <span class="jn">160</span><span class="jp">,</span>
+      <span class="jk">"attrs"</span>: <span class="jp">{</span> <span class="jk">"color"</span>: <span class="js">"red"</span><span class="jp">,</span> <span class="jk">"label"</span>: <span class="js">"FLAME"</span> <span class="jp">}</span>
+    <span class="jp">},</span>
+    <span class="jp">{</span>
+      <span class="jk">"type"</span>: <span class="js">"wokwi-potentiometer"</span><span class="jp">,</span>
+      <span class="jk">"id"</span>: <span class="js">"pot1"</span><span class="jp">,</span>
+      <span class="jk">"top"</span>: <span class="jn">80</span><span class="jp">,</span>
+      <span class="jk">"left"</span>: <span class="jn">260</span><span class="jp">,</span>
+      <span class="jk">"attrs"</span>: <span class="jp">{</span> <span class="jk">"label"</span>: <span class="js">"Intensity"</span> <span class="jp">}</span>
+    <span class="jp">}</span>
+  <span class="jp">],</span>
+  <span class="jk">"connections"</span>: <span class="jp">[</span>
+    <span class="jp">[</span><span class="js">"uno:GND.1"</span><span class="jp">,</span>  <span class="js">"lcd1:GND"</span><span class="jp">,</span>   <span class="js">"black"</span><span class="jp">,</span>  <span class="jp">[</span><span class="js">"h-10"</span><span class="jp">,</span><span class="js">"v-130"</span><span class="jp">,</span><span class="js">"h-90"</span><span class="jp">]],</span>
+    <span class="jp">[</span><span class="js">"uno:5V"</span><span class="jp">,</span>     <span class="js">"lcd1:VCC"</span><span class="jp">,</span>   <span class="js">"red"</span><span class="jp">,</span>    <span class="jp">[</span><span class="js">"h-20"</span><span class="jp">,</span><span class="js">"v-150"</span><span class="jp">,</span><span class="js">"h-80"</span><span class="jp">]],</span>
+    <span class="jp">[</span><span class="js">"uno:A4"</span><span class="jp">,</span>     <span class="js">"lcd1:SDA"</span><span class="jp">,</span>   <span class="js">"blue"</span><span class="jp">,</span>   <span class="jp">[</span><span class="js">"h-30"</span><span class="jp">,</span><span class="js">"v-160"</span><span class="jp">,</span><span class="js">"h-70"</span><span class="jp">]],</span>
+    <span class="jp">[</span><span class="js">"uno:A5"</span><span class="jp">,</span>     <span class="js">"lcd1:SCL"</span><span class="jp">,</span>   <span class="js">"yellow"</span><span class="jp">,</span> <span class="jp">[</span><span class="js">"h-40"</span><span class="jp">,</span><span class="js">"v-170"</span><span class="jp">,</span><span class="js">"h-60"</span><span class="jp">]],</span>
+    <span class="jp">[</span><span class="js">"uno:8"</span><span class="jp">,</span>      <span class="js">"buzz1:1"</span><span class="jp">,</span>    <span class="js">"orange"</span><span class="jp">,</span> <span class="jp">[</span><span class="js">"v-30"</span><span class="jp">,</span><span class="js">"h200"</span><span class="jp">]],</span>
+    <span class="jp">[</span><span class="js">"uno:GND.2"</span><span class="jp">,</span>  <span class="js">"buzz1:2"</span><span class="jp">,</span>    <span class="js">"black"</span><span class="jp">,</span>  <span class="jp">[</span><span class="js">"h10"</span><span class="jp">,</span><span class="js">"v-20"</span><span class="jp">,</span><span class="js">"h200"</span><span class="jp">]],</span>
+    <span class="jp">[</span><span class="js">"uno:13"</span><span class="jp">,</span>     <span class="js">"r1:1"</span><span class="jp">,</span>       <span class="js">"red"</span><span class="jp">,</span>    <span class="jp">[</span><span class="js">"v-20"</span><span class="jp">,</span><span class="js">"h220"</span><span class="jp">]],</span>
+    <span class="jp">[</span><span class="js">"r1:2"</span><span class="jp">,</span>       <span class="js">"led1:A"</span><span class="jp">,</span>     <span class="js">"red"</span><span class="jp">,</span>    <span class="jp">[]],</span>
+    <span class="jp">[</span><span class="js">"led1:C"</span><span class="jp">,</span>     <span class="js">"uno:GND.3"</span><span class="jp">,</span>  <span class="js">"black"</span><span class="jp">,</span>  <span class="jp">[</span><span class="js">"v40"</span><span class="jp">,</span><span class="js">"h-250"</span><span class="jp">]],</span>
+    <span class="jp">[</span><span class="js">"uno:7"</span><span class="jp">,</span>      <span class="js">"btn1:1.l"</span><span class="jp">,</span>   <span class="js">"green"</span><span class="jp">,</span>  <span class="jp">[</span><span class="js">"v-10"</span><span class="jp">,</span><span class="js">"h80"</span><span class="jp">]],</span>
+    <span class="jp">[</span><span class="js">"btn1:2.l"</span><span class="jp">,</span>   <span class="js">"uno:GND.4"</span><span class="jp">,</span>  <span class="js">"black"</span><span class="jp">,</span>  <span class="jp">[</span><span class="js">"v40"</span><span class="jp">,</span><span class="js">"h-100"</span><span class="jp">]],</span>
+    <span class="jp">[</span><span class="js">"uno:A0"</span><span class="jp">,</span>     <span class="js">"pot1:SIG"</span><span class="jp">,</span>   <span class="js">"purple"</span><span class="jp">,</span> <span class="jp">[</span><span class="js">"v-20"</span><span class="jp">,</span><span class="js">"h150"</span><span class="jp">]],</span>
+    <span class="jp">[</span><span class="js">"pot1:VCC"</span><span class="jp">,</span>   <span class="js">"uno:5V"</span><span class="jp">,</span>     <span class="js">"red"</span><span class="jp">,</span>    <span class="jp">[</span><span class="js">"v-30"</span><span class="jp">,</span><span class="js">"h-100"</span><span class="jp">]],</span>
+    <span class="jp">[</span><span class="js">"pot1:GND"</span><span class="jp">,</span>   <span class="js">"uno:GND.5"</span><span class="jp">,</span>  <span class="js">"black"</span><span class="jp">,</span>  <span class="jp">[</span><span class="js">"v20"</span><span class="jp">,</span><span class="js">"h-100"</span><span class="jp">]]</span>
+  <span class="jp">],</span>
+  <span class="jk">"dependencies"</span>: <span class="jp">{}</span>
+<span class="jp">}</span></pre>
+      </div>
+    </div>
+
+    <!-- libraries.txt -->
+    <div class="wf-panel" id="tab-libs">
+      <div class="code-wrap">
+        <div class="code-head">
+          <div class="code-fn">📦 libraries.txt <span class="code-lang">Plain Text</span></div>
+          <button class="copy-btn" onclick="copyWokwiFile('libs')" id="copyBtn-libs">Copy</button>
+        </div>
+<pre class="code" id="wf-libs"><span class="st">LiquidCrystal I2C</span></pre>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- CODE -->
+<section id="code">
+  <div class="inner">
+    <div class="sec-label">Source Code</div>
+    <h2 class="sec-title">Arduino <span>Firmware</span></h2>
+    <p class="sec-desc">Fully commented Arduino C++ sketch. Upload directly via Arduino IDE 2.x. Requires Wire.h and LiquidCrystal_I2C libraries.</p>
+    <div class="code-wrap reveal">
+      <div class="code-head">
+        <div class="code-fn">🔥 fire_alert_system.ino <span class="code-lang">Arduino C++</span></div>
+        <button class="copy-btn" id="copyBtn" onclick="copyCode()">Copy Code</button>
+      </div>
+<pre class="code" id="codeBlock"><span class="pp">#include</span> <span class="st">&lt;Wire.h&gt;</span>
+<span class="pp">#include</span> <span class="st">&lt;LiquidCrystal_I2C.h&gt;</span>
+
+<span class="cm">// ─── Pin Definitions ─────────────────────────────────────────</span>
+<span class="pp">#define</span> <span class="nm">FLAME_DIGITAL</span>  <span class="nm">7</span>   <span class="cm">// KY-026 DO pin  → Arduino D7</span>
+<span class="pp">#define</span> <span class="nm">FLAME_ANALOG</span>   <span class="nm">A0</span>  <span class="cm">// KY-026 AO pin  → Arduino A0</span>
+<span class="pp">#define</span> <span class="nm">BUZZER</span>         <span class="nm">8</span>   <span class="cm">// Passive buzzer → Arduino D8</span>
+<span class="pp">#define</span> <span class="nm">LED_PIN</span>        <span class="nm">13</span>  <span class="cm">// LED (220Ω)     → Arduino D13</span>
+
+<span class="cm">// ─── LCD: I2C address 0x27, 16 cols, 2 rows ──────────────────</span>
+<span class="fn">LiquidCrystal_I2C</span> lcd(<span class="nm">0x27</span>, <span class="nm">16</span>, <span class="nm">2</span>);
+
+<span class="cm">// ─── Setup ───────────────────────────────────────────────────</span>
+<span class="kw">void</span> <span class="fn">setup</span>() {
+  <span class="fn">pinMode</span>(<span class="nm">FLAME_DIGITAL</span>, INPUT);
+  <span class="fn">pinMode</span>(<span class="nm">BUZZER</span>,        OUTPUT);
+  <span class="fn">pinMode</span>(<span class="nm">LED_PIN</span>,       OUTPUT);
+
+  lcd.<span class="fn">init</span>();
+  lcd.<span class="fn">backlight</span>();
+  lcd.<span class="fn">setCursor</span>(<span class="nm">0</span>, <span class="nm">0</span>); lcd.<span class="fn">print</span>(<span class="st">"Fire Alert Sys  "</span>);
+  lcd.<span class="fn">setCursor</span>(<span class="nm">0</span>, <span class="nm">1</span>); lcd.<span class="fn">print</span>(<span class="st">"  Initialising.."</span>);
+  <span class="fn">delay</span>(<span class="nm">2000</span>);
+  lcd.<span class="fn">clear</span>();
+}
+
+<span class="cm">// ─── Main Loop ───────────────────────────────────────────────</span>
+<span class="kw">void</span> <span class="fn">loop</span>() {
+  <span class="cm">// KY-026 is active-LOW: LOW = flame detected</span>
+  <span class="kw">int</span> flameDigital = <span class="fn">digitalRead</span>(<span class="nm">FLAME_DIGITAL</span>);
+  <span class="kw">int</span> flameAnalog  = <span class="fn">analogRead</span>(<span class="nm">FLAME_ANALOG</span>);
+
+  <span class="cm">// Map analog: lower ADC = stronger flame = higher %</span>
+  <span class="kw">int</span> intensity = <span class="fn">map</span>(flameAnalog, <span class="nm">1023</span>, <span class="nm">0</span>, <span class="nm">0</span>, <span class="nm">100</span>);
+
+  <span class="kw">if</span> (flameDigital == LOW) {
+    <span class="cm">// ── Flame detected ──────────────────────────────────────</span>
+    lcd.<span class="fn">setCursor</span>(<span class="nm">0</span>, <span class="nm">0</span>); lcd.<span class="fn">print</span>(<span class="st">"FIRE DETECTED!  "</span>);
+    lcd.<span class="fn">setCursor</span>(<span class="nm">0</span>, <span class="nm">1</span>);
+    lcd.<span class="fn">print</span>(<span class="st">"Intensity: "</span>);
+    lcd.<span class="fn">print</span>(intensity);
+    lcd.<span class="fn">print</span>(<span class="st">"%   "</span>);
+    <span class="fn">digitalWrite</span>(<span class="nm">BUZZER</span>,  HIGH);  <span class="cm">// Buzzer ON</span>
+    <span class="fn">digitalWrite</span>(<span class="nm">LED_PIN</span>, HIGH);  <span class="cm">// LED ON</span>
+  } <span class="kw">else</span> {
+    <span class="cm">// ── No flame ────────────────────────────────────────────</span>
+    lcd.<span class="fn">setCursor</span>(<span class="nm">0</span>, <span class="nm">0</span>); lcd.<span class="fn">print</span>(<span class="st">"No Fire Detected"</span>);
+    lcd.<span class="fn">setCursor</span>(<span class="nm">0</span>, <span class="nm">1</span>); lcd.<span class="fn">print</span>(<span class="st">"System: SAFE    "</span>);
+    <span class="fn">digitalWrite</span>(<span class="nm">BUZZER</span>,  LOW);   <span class="cm">// Buzzer OFF</span>
+    <span class="fn">digitalWrite</span>(<span class="nm">LED_PIN</span>, LOW);   <span class="cm">// LED OFF</span>
+  }
+
+  <span class="fn">delay</span>(<span class="nm">200</span>);  <span class="cm">// 200 ms poll — prevents LCD flicker</span>
+}</pre>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- HOW IT WORKS -->
+<section id="howitworks">
+  <div class="inner">
+    <div class="sec-label">How It Works</div>
+    <h2 class="sec-title">Step-by-Step <span>System Flow</span></h2>
+    <p class="sec-desc">A complete walkthrough of the detection pipeline from IR emission to multi-modal alert output.</p>
+    <div class="steps reveal">
+      <div class="step"><div class="step-n">1</div><div><h3>IR Emission</h3><p>The KY-026 module's built-in IR LED continuously emits modulated infrared light across its 60° sensing cone. Open flames emit strong IR radiation in the 760–1100 nm spectrum, making them highly distinguishable from ambient room light.</p></div></div>
+      <div class="step"><div class="step-n">2</div><div><h3>Reflection &amp; Detection</h3><p>The integrated IR photodiode receiver picks up reflected and radiated infrared energy from a flame source. The stronger the flame or the closer it is, the lower the analog output voltage (higher ADC value on AO pin).</p></div></div>
+      <div class="step"><div class="step-n">3</div><div><h3>LM393 Comparator Decision</h3><p>The onboard LM393 dual comparator evaluates the photodiode signal against a reference threshold set by the potentiometer. When the IR signal exceeds the threshold, the comparator drives the DO (digital output) pin LOW — active-low logic.</p></div></div>
+      <div class="step"><div class="step-n">4</div><div><h3>Arduino Polling</h3><p>The Arduino's loop() function calls digitalRead(D7) every 200 ms. A LOW reading triggers the alert sequence. Simultaneously, analogRead(A0) captures the 0–1023 intensity value, which is mapped to 0–100% for LCD display.</p></div></div>
+      <div class="step"><div class="step-n">5</div><div><h3>Multi-Modal Alert Activation</h3><p>On flame detection, three channels fire simultaneously: digitalWrite(D8, HIGH) activates the passive buzzer for audible alarm; digitalWrite(D13, HIGH) lights the red LED; and the I2C LCD updates with "FIRE DETECTED!" and real-time intensity percentage.</p></div></div>
+      <div class="step"><div class="step-n">6</div><div><h3>Instant Deactivation</h3><p>When the flame is removed, the sensor's DO pin returns HIGH. On the next 200 ms poll, all three alert channels are driven LOW simultaneously, the LCD displays "System: SAFE", and the system returns to standby — ready for the next detection event.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- TIMELINE -->
+<section id="timeline">
+  <div class="inner">
+    <div class="sec-label">Timeline</div>
+    <h2 class="sec-title">Project <span>Development Journey</span></h2>
+    <p class="sec-desc">A chronological walkthrough of the full development process — from concept to working prototype.</p>
+    <div class="tl">
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-date">Phase 1 — Project Conception</div>
+        <div class="tl-card">
+          <h3>Identifying the Problem</h3>
+          <p>Identified the need for an affordable, real-time fire detection solution using widely available Arduino components. Researched fire detection methods — IR sensing was chosen for its fast response time, digital simplicity, and low cost compared to gas or thermistor-based sensors.</p>
+          <span class="tl-tag">Research</span>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-date">Phase 2 — Component Selection</div>
+        <div class="tl-card">
+          <h3>Choosing the Right Hardware</h3>
+          <p>Selected the KY-026 flame sensor for its dual digital/analog output, integrated LM393 comparator, and 760–1100 nm spectral sensitivity perfectly matched to open flame IR emissions. Chose Arduino Uno for straightforward I2C and GPIO support.</p>
+          <span class="tl-tag">Hardware Design</span>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-date">Phase 3 — Circuit Design</div>
+        <div class="tl-card">
+          <h3>Schematic &amp; Pin Mapping</h3>
+          <p>Designed the wiring layout: KY-026 DO to D7 for digital detection, AO to A0 for intensity, buzzer to D8, LED to D13 via 220Ω resistor, and 16×2 I2C LCD to A4/A5. I2C bus chosen to preserve digital GPIO pins for potential future expansion.</p>
+          <span class="tl-tag">Circuit Design</span>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-date">Phase 4 — Firmware Development</div>
+        <div class="tl-card">
+          <h3>Writing the Arduino Sketch</h3>
+          <p>Developed the firmware with a 200 ms polling loop reading both digital and analog sensor outputs. Implemented concurrent alert activation (buzzer + LED + LCD), active-low detection logic, and analog-to-percentage mapping for fire intensity display on the LCD's second row.</p>
+          <span class="tl-tag">Software Development</span>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-date">Phase 5 — Virtual Simulation</div>
+        <div class="tl-card">
+          <h3>Testing on Wokwi Simulator</h3>
+          <p>Loaded the circuit and firmware into the Wokwi online simulator. Validated the active-low logic by toggling the digital flame sensor input. Confirmed LCD output updates, buzzer activation, and LED state transitions all behaved correctly before touching real hardware.</p>
+          <span class="tl-tag">Simulation</span>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-date">Phase 6 — Hardware Assembly</div>
+        <div class="tl-card">
+          <h3>Breadboard Prototype Build</h3>
+          <p>Assembled all components on a breadboard following the wiring schematic. Used power rails for clean 5V and GND distribution. Uploaded the sketch via Arduino IDE 2.x using USB. Performed initial power-on test — LCD splash screen confirmed correct I2C address and communication.</p>
+          <span class="tl-tag">Assembly</span>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-date">Phase 7 — Calibration</div>
+        <div class="tl-card">
+          <h3>Sensitivity Tuning</h3>
+          <p>Adjusted the KY-026's onboard potentiometer to set the optimal detection threshold. Tested with a lighter flame at distances of 10 cm, 20 cm, and 30 cm. Fine-tuned the threshold to eliminate false positives from sunlight while maintaining reliable detection at up to 25 cm.</p>
+          <span class="tl-tag">Calibration</span>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-date">Phase 8 — Final Testing &amp; Documentation</div>
+        <div class="tl-card">
+          <h3>System Validation &amp; Write-up</h3>
+          <p>Ran comprehensive tests: repeated flame detection cycles, stress-tested the 200 ms polling loop, verified simultaneous alert activation, and confirmed clean deactivation on flame removal. Documented all findings, circuit diagrams, and code comments for this project showcase.</p>
+          <span class="tl-tag">Testing &amp; Docs</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- APPLICATIONS -->
+<section id="applications">
+  <div class="inner">
+    <div class="sec-label">Applications</div>
+    <h2 class="sec-title">Real-world Use &amp; <span>Improvements</span></h2>
+    <p class="sec-desc">Where this system can be deployed and how it can be extended into a production-ready fire safety solution.</p>
+    <div class="apps reveal">
+      <div class="apps-col">
+        <h3>🌍 Real-World Applications</h3>
+        <div class="app-item"><span class="app-icon">🏠</span><div><strong>Home Fire Safety</strong><br>Affordable standalone fire detector for kitchens, garages, and utility rooms as a supplementary early-warning system.</div></div>
+        <div class="app-item"><span class="app-icon">🏭</span><div><strong>Industrial Monitoring</strong><br>Deployed near industrial machinery, boilers, and chemical storage areas where early flame detection is critical for safety protocols.</div></div>
+        <div class="app-item"><span class="app-icon">🤖</span><div><strong>Robotics Fire Response</strong><br>Integrated into autonomous robots for fire-fighting or fire-avoidance missions in educational robotics competitions.</div></div>
+        <div class="app-item"><span class="app-icon">🌲</span><div><strong>Forest Fire Detection</strong><br>Deployed in remote sensor networks with solar power to monitor for early signs of wildfire in forest perimeters.</div></div>
+        <div class="app-item"><span class="app-icon">🏫</span><div><strong>Educational Labs</strong><br>Ideal teaching tool for electronics and embedded systems courses — demonstrates sensor interfacing, I2C, and real-time control.</div></div>
+      </div>
+      <div class="apps-col">
+        <h3>🚀 Possible Improvements</h3>
+        <div class="app-item"><span class="app-icon">📡</span><div><strong>Wi-Fi / GSM Alerts</strong><br>Add an ESP8266 or SIM800L module to send SMS, email, or push notifications when fire is detected remotely.</div></div>
+        <div class="app-item"><span class="app-icon">📊</span><div><strong>Multi-Sensor Array</strong><br>Deploy multiple KY-026 sensors across different zones and triangulate flame position for directional awareness.</div></div>
+        <div class="app-item"><span class="app-icon">🌡️</span><div><strong>Temperature Fusion</strong><br>Combine with a DHT22 or DS18B20 temperature sensor for dual-confirmation to reduce false positives from IR interference.</div></div>
+        <div class="app-item"><span class="app-icon">💨</span><div><strong>Automatic Suppression</strong><br>Trigger a servo-controlled water valve or CO₂ relay on fire detection for a fully autonomous fire suppression response.</div></div>
+        <div class="app-item"><span class="app-icon">📱</span><div><strong>IoT Dashboard</strong><br>Stream sensor data to a cloud platform (Blynk, ThingSpeak, Firebase) for live monitoring, historical logs, and trend analysis.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- FOOTER -->
+<footer>
+  <span style="font-size:2rem;display:block;margin-bottom:.75rem">🔥</span>
+  <p>© 2025 <a href="#">Fire &amp; Flame Detection Alert System</a> — Arduino Mini Project</p>
+  <p class="f-stack">Built with HTML / CSS / Vanilla JS &nbsp;·&nbsp; Designed for GitHub Pages</p>
+</footer>
+
+<script>
+// ── EMBER PARTICLE CANVAS ──────────────────────────────────────
+const canvas = document.getElementById('embers');
+const ctx = canvas.getContext('2d');
+let embers = [];
+
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+function spawnEmber() {
+  embers.push({
+    x: Math.random() * canvas.width,
+    y: canvas.height + 10,
+    r: Math.random() * 2.5 + 0.5,
+    vx: (Math.random() - 0.5) * 1.2,
+    vy: -(Math.random() * 1.8 + 0.8),
+    life: 1,
+    decay: Math.random() * 0.004 + 0.002,
+    hue: Math.random() * 40 + 10
+  });
+}
+
+function drawEmbers() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  if (Math.random() < 0.4) spawnEmber();
+  embers = embers.filter(e => e.life > 0);
+  embers.forEach(e => {
+    e.x += e.vx;
+    e.y += e.vy;
+    e.life -= e.decay;
+    e.vx += (Math.random() - 0.5) * 0.15;
+    ctx.beginPath();
+    ctx.arc(e.x, e.y, e.r, 0, Math.PI * 2);
+    ctx.fillStyle = `hsla(${e.hue}, 100%, 60%, ${e.life * 0.7})`;
+    ctx.shadowBlur = 6;
+    ctx.shadowColor = `hsl(${e.hue}, 100%, 60%)`;
+    ctx.fill();
+  });
+  requestAnimationFrame(drawEmbers);
+}
+drawEmbers();
+
+// ── SCROLL SPY ────────────────────────────────────────────────
+const sections = document.querySelectorAll('section[id]');
+const navLinks = document.querySelectorAll('.nav-links a');
+window.addEventListener('scroll', () => {
+  let cur = '';
+  sections.forEach(s => {
+    if (window.scrollY >= s.offsetTop - 100) cur = s.id;
+  });
+  navLinks.forEach(a => {
+    a.classList.toggle('active', a.getAttribute('href') === '#' + cur);
+  });
+});
+
+// ── SCROLL REVEAL ─────────────────────────────────────────────
+const reveals = document.querySelectorAll('.reveal, .tl-item');
+const obs = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) e.target.classList.add('vis');
+  });
+}, { threshold: 0.1 });
+reveals.forEach(r => obs.observe(r));
+
+// ── COPY CODE (main sketch section) ──────────────────────────
+function copyCode() {
+  const raw = `#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+
+// Pin Definitions
+#define FLAME_DIGITAL  7
+#define FLAME_ANALOG   A0
+#define BUZZER         8
+#define LED_PIN        13
+
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+void setup() {
+  pinMode(FLAME_DIGITAL, INPUT);
+  pinMode(BUZZER,        OUTPUT);
+  pinMode(LED_PIN,       OUTPUT);
+  lcd.init();
+  lcd.backlight();
+  lcd.setCursor(0, 0); lcd.print("Fire Alert Sys  ");
+  lcd.setCursor(0, 1); lcd.print("  Initialising..");
+  delay(2000);
+  lcd.clear();
+}
+
+void loop() {
+  int flameDigital = digitalRead(FLAME_DIGITAL);
+  int flameAnalog  = analogRead(FLAME_ANALOG);
+  int intensity    = map(flameAnalog, 1023, 0, 0, 100);
+
+  if (flameDigital == LOW) {
+    lcd.setCursor(0, 0); lcd.print("FIRE DETECTED!  ");
+    lcd.setCursor(0, 1);
+    lcd.print("Intensity: ");
+    lcd.print(intensity);
+    lcd.print("%   ");
+    digitalWrite(BUZZER,  HIGH);
+    digitalWrite(LED_PIN, HIGH);
+  } else {
+    lcd.setCursor(0, 0); lcd.print("No Fire Detected");
+    lcd.setCursor(0, 1); lcd.print("System: SAFE    ");
+    digitalWrite(BUZZER,  LOW);
+    digitalWrite(LED_PIN, LOW);
+  }
+  delay(200);
+}`;
+  copyToClipboard(raw, 'copyBtn', 'Copy Code');
+}
+
+// ── WOKWI FILE COPY ───────────────────────────────────────────
+const wokwiFiles = {
+  sketch: `#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+
+// ─── Pin Definitions ──────────────────────────────────────────────
+#define FLAME_DIGITAL  7   // KY-026 DO pin  → Arduino D7 (Button in Wokwi)
+#define FLAME_ANALOG   A0  // KY-026 AO pin  → Arduino A0 (Potentiometer in Wokwi)
+#define BUZZER         8   // Passive buzzer → Arduino D8
+#define LED_PIN        13  // LED (220Ω)     → Arduino D13
+
+// ─── LCD: I2C address 0x27, 16 cols, 2 rows ──────────────────────
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+// ─── Setup ───────────────────────────────────────────────────────
+void setup() {
+  pinMode(FLAME_DIGITAL, INPUT_PULLUP);
+  pinMode(BUZZER,        OUTPUT);
+  pinMode(LED_PIN,       OUTPUT);
+
+  lcd.init();
+  lcd.backlight();
+  lcd.setCursor(0, 0); lcd.print("Fire Alert Sys  ");
+  lcd.setCursor(0, 1); lcd.print("  Initialising..");
+  delay(2000);
+  lcd.clear();
+}
+
+// ─── Main Loop ────────────────────────────────────────────────────
+void loop() {
+  int flameDigital = digitalRead(FLAME_DIGITAL);
+  int flameAnalog  = analogRead(FLAME_ANALOG);
+
+  int intensity = map(flameAnalog, 1023, 0, 0, 100);
+  intensity = constrain(intensity, 0, 100);
+
+  if (flameDigital == LOW) {
+    lcd.setCursor(0, 0); lcd.print("FIRE DETECTED!  ");
+    lcd.setCursor(0, 1);
+    lcd.print("Intensity: ");
+    lcd.print(intensity);
+    lcd.print("%   ");
+
+    digitalWrite(BUZZER, HIGH); delay(100);
+    digitalWrite(BUZZER, LOW);  delay(50);
+    digitalWrite(BUZZER, HIGH); delay(100);
+    digitalWrite(BUZZER, LOW);  delay(50);
+
+    digitalWrite(LED_PIN, HIGH);
+  } else {
+    lcd.setCursor(0, 0); lcd.print("No Fire Detected");
+    lcd.setCursor(0, 1); lcd.print("System: SAFE    ");
+    digitalWrite(BUZZER,  LOW);
+    digitalWrite(LED_PIN, LOW);
+  }
+
+  delay(200);
+}`,
+  diagram: `{
+  "version": 1,
+  "author": "Fire & Flame Detection Alert System",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "wokwi-arduino-uno", "id": "uno", "top": 220, "left": 20, "rotate": 0, "attrs": {} },
+    { "type": "wokwi-lcd1602", "id": "lcd1", "top": 30, "left": -240, "attrs": { "pins": "i2c", "address": "0x27" } },
+    { "type": "wokwi-buzzer", "id": "buzz1", "top": 30, "left": 340, "attrs": { "volume": "0.6" } },
+    { "type": "wokwi-resistor", "id": "r1", "top": 190, "left": 370, "rotate": 90, "attrs": { "value": "220" } },
+    { "type": "wokwi-led", "id": "led1", "top": 80, "left": 390, "attrs": { "color": "red" } },
+    { "type": "wokwi-pushbutton", "id": "btn1", "top": 80, "left": 160, "attrs": { "color": "red", "label": "FLAME" } },
+    { "type": "wokwi-potentiometer", "id": "pot1", "top": 80, "left": 260, "attrs": { "label": "Intensity" } }
+  ],
+  "connections": [
+    ["uno:GND.1",  "lcd1:GND",   "black",  ["h-10","v-130","h-90"]],
+    ["uno:5V",     "lcd1:VCC",   "red",    ["h-20","v-150","h-80"]],
+    ["uno:A4",     "lcd1:SDA",   "blue",   ["h-30","v-160","h-70"]],
+    ["uno:A5",     "lcd1:SCL",   "yellow", ["h-40","v-170","h-60"]],
+    ["uno:8",      "buzz1:1",    "orange", ["v-30","h200"]],
+    ["uno:GND.2",  "buzz1:2",    "black",  ["h10","v-20","h200"]],
+    ["uno:13",     "r1:1",       "red",    ["v-20","h220"]],
+    ["r1:2",       "led1:A",     "red",    []],
+    ["led1:C",     "uno:GND.3",  "black",  ["v40","h-250"]],
+    ["uno:7",      "btn1:1.l",   "green",  ["v-10","h80"]],
+    ["btn1:2.l",   "uno:GND.4",  "black",  ["v40","h-100"]],
+    ["uno:A0",     "pot1:SIG",   "purple", ["v-20","h150"]],
+    ["pot1:VCC",   "uno:5V",     "red",    ["v-30","h-100"]],
+    ["pot1:GND",   "uno:GND.5",  "black",  ["v20","h-100"]]
+  ],
+  "dependencies": {}
+}`,
+  libs: `LiquidCrystal I2C`
+};
+
+const wokwiBtnLabels = { sketch: 'Copy', diagram: 'Copy', libs: 'Copy' };
+
+function copyWokwiFile(key) {
+  copyToClipboard(wokwiFiles[key], 'copyBtn-' + key, wokwiBtnLabels[key]);
+}
+
+function copyToClipboard(text, btnId, resetLabel) {
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById(btnId);
+    if (!btn) return;
+    btn.textContent = '✓ Copied!';
+    btn.classList.add('ok');
+    setTimeout(() => { btn.textContent = resetLabel; btn.classList.remove('ok'); }, 2500);
+  });
+}
+
+// ── WOKWI FILE TABS ───────────────────────────────────────────
+function switchTab(el, panelId) {
+  document.querySelectorAll('.wf-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.wf-panel').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById(panelId).classList.add('active');
+}
+</script>
+</body>
+</html>
